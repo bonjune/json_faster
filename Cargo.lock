@@ -191,6 +191,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 
 [[package]]
+name = "json_faster"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "rand",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -289,16 +299,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71b2f6e1ab5c2b98c05f0f35b236b22e8df7ead6ffbf51d7808da7f8817e7ab6"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde_custom_parsing"
-version = "0.1.0"
-dependencies = [
- "clap",
- "rand",
- "serde",
- "serde_json",
 ]
 
 [[package]]

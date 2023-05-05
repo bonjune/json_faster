@@ -73,7 +73,8 @@ fn whole_parsing(json: &str) -> u64 {
 
 fn measure_avg_duration(f: &dyn Fn() -> u64) -> f64 {
     let mut total = 0u128;
-    for _ in 0..10000 {
+    let iteration: usize = 1000;
+    for _ in 0..iteration {
         let now = Instant::now();
         f();
         let elapsed = now.elapsed();
@@ -82,7 +83,7 @@ fn measure_avg_duration(f: &dyn Fn() -> u64) -> f64 {
 
     let total = total as f64;
 
-    return total / 10000f64;
+    return total / (iteration as f64);
 }
 
 fn make_json(values_len: usize) -> String {
@@ -108,19 +109,17 @@ fn bench_for_size(size: usize) {
     let avg_nano_secs_1 = measure_avg_duration(&|| mem_effc_parsing(&json));
     let avg_nano_secs_2 = measure_avg_duration(&|| whole_parsing(&json));
 
-    let ratio: f64 = (avg_nano_secs_2 - avg_nano_secs_1) / avg_nano_secs_1 * Into::<f64>::into(100);
-
-    eprintln!("performance testing for {}", size);
-    eprintln!("t1 = {}, t2 = {}", avg_nano_secs_1, avg_nano_secs_2);
-    eprintln!("{} faster!\n", ratio);
+    eprintln!("Size,Custom,Whole");
+    eprintln!("{},{},{}", size, avg_nano_secs_1, avg_nano_secs_2);
 }
 
 #[derive(Parser)]
 struct Context {
-    size: usize,
+    #[arg(long)]
+    json_size: usize,
 }
 
 fn main() {
     let cli = Context::parse();
-    bench_for_size(cli.size);
+    bench_for_size(cli.json_size);
 }

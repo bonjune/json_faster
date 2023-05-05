@@ -1,5 +1,5 @@
 [package]
-name = "serde_custom_parsing"
+name = "json_faster"
 version = "0.1.0"
 edition = "2021"
 
