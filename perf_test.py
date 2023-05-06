@@ -7,11 +7,11 @@ release_bin = ('./target/debug/json_faster', '--json-size=')
 release_bin = ('./target/release/json_faster')
 
 
-def build_args(debug=True, json_size=10):
+def build_args(debug=True, json_size=10, method='naive'):
     if debug:
         return ('./target/debug/json_faster', f'--json-size={json_size}')
 
-    return ('./target/release/json_faster', f'--json-size={json_size}')
+    return ('./target/release/json_faster', f'--json-size={json_size}', f'--method={method}')
 
 
 def parse_result(res):
@@ -19,36 +19,9 @@ def parse_result(res):
         res = res.decode()
     if not isinstance(res, str):
         raise ValueError('result to be parsed must be of type str')
-    hdr, row = res.split()
-    size, custom_time, whole_time = row.split(',')
-    return float(custom_time), float(whole_time)
-
-
-def test_debug():
-    json_sizes = [10, 100, 1000, 5000]
-    result = []
-    for size in json_sizes:
-        c_times = []
-        w_times = []
-        for _ in range(10):
-            args = build_args(debug=True, json_size=size)
-            p = subprocess.run(args, capture_output=True)
-            custom_time, whole_time = parse_result(p.stderr)
-            c_times.append(custom_time)
-            w_times.append(whole_time)
-            time.sleep(0.5)
-
-        custom_avg = sum(c_times) / len(c_times)
-        whole_avg = sum(w_times) / len(w_times)
-
-        result.append((size, custom_avg, whole_avg))
-
-        print(
-            f'size = {size}, iterated {10} times for 1000-iterated avg measurement')
-        print(f'custom parser = {sum(c_times) / len(c_times)} ns')
-        print(f'whole parser =  {sum(w_times) / len(w_times)} ns')
-
-    return result
+    hdr, row, _ = res.split('\n')
+    size, time = row.split(',')
+    return int(size), float(time)
 
 
 def test_release():
@@ -58,12 +31,15 @@ def test_release():
         c_times = []
         w_times = []
         for _ in range(10):
-            args = build_args(debug=False, json_size=size)
+            args = build_args(debug=False, json_size=size, method='naive')
             p = subprocess.run(args, capture_output=True)
-            custom_time, whole_time = parse_result(p.stderr)
+            _, whole_time = parse_result(p.stderr)
+            time.sleep(0.5)
+            args = build_args(debug=False, json_size=size, method='custom')
+            p = subprocess.run(args, capture_output=True)
+            _, custom_time = parse_result(p.stderr)
             c_times.append(custom_time)
             w_times.append(whole_time)
-            time.sleep(0.5)
 
         custom_avg = sum(c_times) / len(c_times)
         whole_avg = sum(w_times) / len(w_times)
@@ -72,8 +48,9 @@ def test_release():
 
         print(
             f'size = {size}, iterated {10} times for 1000-iterated avg measurement')
-        print(f'custom parser = {sum(c_times) / len(c_times)}')
-        print(f'whole parser =  {sum(w_times) / len(w_times)}')
+        print(f'custom parser = {custom_avg}')
+        print(f'whole parser =  {whole_avg}')
+        print(f'whole / custom = {whole_avg / custom_avg}')
 
     return result
 

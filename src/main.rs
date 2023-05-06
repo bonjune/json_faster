@@ -104,22 +104,34 @@ fn make_json(values_len: usize) -> String {
     )
 }
 
-fn bench_for_size(size: usize) {
+fn bench_for_size(size: usize, method: &str) {
     let json = make_json(size);
-    let avg_nano_secs_1 = measure_avg_duration(&|| mem_effc_parsing(&json));
-    let avg_nano_secs_2 = measure_avg_duration(&|| whole_parsing(&json));
 
-    eprintln!("Size,Custom,Whole");
-    eprintln!("{},{},{}", size, avg_nano_secs_1, avg_nano_secs_2);
+    match method {
+        "naive" => {
+            let avg_ns = measure_avg_duration(&|| whole_parsing(&json));
+            eprintln!("Size,Average (ns)");
+            eprintln!("{},{}", size, avg_ns);
+        }
+        "custom" => {
+            let avg_ns = measure_avg_duration(&|| mem_effc_parsing(&json));
+            eprintln!("Size,Average (ns)");
+            eprintln!("{},{}", size, avg_ns);
+        }
+        _ => panic!("invalid method specified. choose one of the followings: naive, custom"),
+    }
 }
 
 #[derive(Parser)]
 struct Context {
     #[arg(long)]
     json_size: usize,
+
+    #[arg(long)]
+    method: String,
 }
 
 fn main() {
     let cli = Context::parse();
-    bench_for_size(cli.json_size);
+    bench_for_size(cli.json_size, &cli.method);
 }
